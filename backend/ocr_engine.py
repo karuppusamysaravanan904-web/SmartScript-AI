@@ -250,31 +250,70 @@ class ExtremeHTREngine:
                 ("ordered.", 0.96, ["ordered."])
             ]
         else:
-            # General handwritten document
-            headings.append("HANDWRITTEN DOCUMENT TRANSCRIPTION")
-            sample_words = [
-                ("General", 0.96, ["General"]),
-                ("Consultation", 0.94, ["Consultation"]),
-                ("Notes:", 0.95, ["Notes:"]),
-                ("Patient", 0.97, ["Patient"]),
-                ("complains", 0.92, ["complains", "complaints"]),
-                ("of", 0.98, ["of"]),
-                ("intermittent", 0.88, ["intermittent", "intermediate"]),
-                ("headache", 0.91, ["headache"]),
-                ("and", 0.98, ["and"]),
-                ("fever", 0.72, ["fever", "fevr", "focus"]),
-                ("for", 0.98, ["for"]),
-                ("3", 0.99, ["3"]),
-                ("days.", 0.95, ["days."]),
-                ("Advised", 0.93, ["Advised"]),
-                ("adequate", 0.91, ["adequate"]),
-                ("rest,", 0.94, ["rest,"]),
-                ("hydration", 0.89, ["hydration"]),
-                ("and", 0.98, ["and"]),
-                ("prescribed", 0.92, ["prescribed"]),
-                ("analgesics.", 0.87, ["analgesics.", "antibiotics."])
-            ]
+    # General handwritten document - REAL OCR
+    headings.append("HANDWRITTEN DOCUMENT TRANSCRIPTION")
 
+    try:
+        ocr_data = pytesseract.image_to_data(
+            denoised,
+            config="--oem 3 --psm 6",
+            output_type=pytesseract.Output.DICT
+        )
+
+        sample_words = []
+        ocr_boxes = []
+
+        for i, text in enumerate(ocr_data["text"]):
+            text = text.strip()
+
+            if not text:
+                continue
+
+            try:
+                conf = float(ocr_data["conf"][i]) / 100.0
+            except (ValueError, TypeError):
+                conf = 0.50
+
+            if conf < 0:
+                conf = 0.50
+
+            x = int(ocr_data["left"][i])
+            y = int(ocr_data["top"][i])
+            bw = int(ocr_data["width"][i])
+            bh = int(ocr_data["height"][i])
+
+            if bw <= 0 or bh <= 0:
+                continue
+
+            conf = round(min(max(conf, 0.05), 0.99), 2)
+
+            sample_words.append(
+                (text, conf, [text])
+            )
+
+            ocr_boxes.append((x, y, bw, bh))
+
+        if sample_words:
+            raw_boxes = ocr_boxes
+        else:
+            sample_words = [
+                (
+                    "[No readable text detected]",
+                    0.20,
+                    ["[No readable text detected]"]
+                )
+            ]
+            raw_boxes = []
+
+    except Exception:
+        sample_words = [
+            (
+                "[OCR unavailable]",
+                0.10,
+                ["[OCR unavailable]"]
+            )
+        ]
+        raw_boxes = []
         # Distribute bounding boxes across image
         num_words = len(sample_words)
         boxes_to_use = raw_boxes if len(raw_boxes) >= num_words else []
