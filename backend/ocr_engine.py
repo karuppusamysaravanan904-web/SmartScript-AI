@@ -20,6 +20,46 @@ def image_to_base64(image_np: np.ndarray, quality: int = 85) -> str:
         return ""
     return f"data:image/jpeg;base64,{base64.b64encode(buffer).decode('utf-8')}"
 
+def gemini_handwriting_ocr(image_np: np.ndarray) -> str:
+    """Read handwritten text using Gemini vision."""
+    try:
+        api_key = os.getenv("GEMINI_API_KEY")
+
+        if not api_key:
+            return ""
+
+        client = genai.Client(api_key=api_key)
+
+        rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(rgb_image)
+
+        prompt = """
+Read the handwriting in this image exactly as written.
+
+This may be a doctor's handwritten prescription or medical note.
+
+Rules:
+- Transcribe the actual visible handwriting.
+- Preserve the original wording as much as possible.
+- Do NOT invent medicines, diagnoses, names, doses, or instructions.
+- If a word is genuinely unreadable, write [unclear].
+- Do not explain the image.
+- Do not add medical advice.
+- Return ONLY the transcribed text.
+"""
+
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=[pil_image, prompt],
+        )
+
+        text = (response.text or "").strip()
+        return text
+
+    except Exception as exc:
+        print(f"Gemini handwriting OCR error: {exc}")
+        return ""
+
 def crop_region_base64(image_np: np.ndarray, bbox: List[int], padding: int = 15) -> str:
     """Crops a region [x, y, w, h] from image and returns base64."""
     ih, iw = image_np.shape[:2]
