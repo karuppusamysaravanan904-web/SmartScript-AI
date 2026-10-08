@@ -11,6 +11,7 @@ import base64
 from typing import Dict, Any, List, Optional, Tuple
 import pytesseract
 from PIL import Image
+from google import genai
 
 def image_to_base64(image_np: np.ndarray, quality: int = 85) -> str:
     """Converts OpenCV numpy image to Base64 JPEG string."""
