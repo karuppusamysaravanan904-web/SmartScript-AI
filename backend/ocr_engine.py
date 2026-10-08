@@ -145,6 +145,7 @@ class ExtremeHTREngine:
         
         # Build document text and tokens based on filename/category detection
         lower_fn = filename.lower()
+        gemini_text = gemini_handwriting_ocr(image_np)
         
         tokens: List[Dict[str, Any]] = []
         paragraphs: List[str] = []
@@ -355,6 +356,15 @@ class ExtremeHTREngine:
                     )
                 ]
                 raw_boxes = []
+
+        # Use Gemini handwriting transcription
+if gemini_text:
+    headings = ["HANDWRITTEN DOCUMENT TRANSCRIPTION"]
+    sample_words = [
+        (word, 0.95, [word])
+        for word in gemini_text.split()
+    ]
+    raw_boxes = []
         # Distribute bounding boxes across image
         num_words = len(sample_words)
         boxes_to_use = raw_boxes if len(raw_boxes) >= num_words else []
