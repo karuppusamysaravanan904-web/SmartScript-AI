@@ -15,9 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
-from backend.languages import INDIAN_LANGUAGES, detect_script_from_text, translate_content
-from backend.ocr_engine import ExtremeHTREngine, image_to_base64
-from backend.export_service import (
+from languages import INDIAN_LANGUAGES, detect_script_from_text, translate_content
+from ocr_engine import ExtremeHTREngine, image_to_base64
+from export_service import (
     generate_docx, generate_pdf, generate_pptx, generate_txt, generate_markdown, generate_all_zip
 )
 
