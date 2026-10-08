@@ -8,3 +8,4 @@ Pillow
 python-docx
 reportlab
 python-pptx
+pytesseract
