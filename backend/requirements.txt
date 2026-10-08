@@ -9,3 +9,5 @@ python-docx
 reportlab
 python-pptx
 pytesseract
+google-genai
+
