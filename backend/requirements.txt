@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+numpy
+opencv-python-headless
+Pillow
+python-docx
+reportlab
+python-pptx
